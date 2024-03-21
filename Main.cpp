@@ -119,31 +119,19 @@ void RotateImage(Image& image, int rotations) {
 
 void FrameImageDrawEdge(Image &image, int width, int pos, int color[3]) {
     for (int i = pos; i < image.width - pos; ++i) {
-        for (int j = pos; j < pos + width; j++) {
-            image(i, j, 0) = color[0];
-            image(i, j, 1) = color[1];
-            image(i, j, 2) = color[2];
+        for (int j = pos; j < pos + width; ++j) {
+            for (int k = 0; k < 3; ++k) {
+                image(i, j, k) = color[k];
+                image(i, image.height + j - width - 2 * pos, k) = color[k];
+            }
         }
     }
-    for (int i = pos; i < image.width - pos; ++i) {
-        for (int j = image.height - pos - width; j < image.height - pos; j++) {
-            image(i, j, 0) = color[0];
-            image(i, j, 1) = color[1];
-            image(i, j, 2) = color[2];
-        }
-    }
-    for (int i = pos; i < pos + width; ++i) {
-        for (int j = pos; j < image.height - pos; j++) {
-            image(i, j, 0) = color[0];
-            image(i, j, 1) = color[1];
-            image(i, j, 2) = color[2];
-        }
-    }
-    for (int i = image.width - pos - width; i < image.width - pos; ++i) {
-        for (int j = pos; j < image.height - pos; j++) {
-            image(i, j, 0) = color[0];
-            image(i, j, 1) = color[1];
-            image(i, j, 2) = color[2];
+    for (int j = pos; j < image.height - pos; ++j) {
+        for (int i = pos; i < pos + width; ++i) {
+            for (int k = 0; k < 3; ++k) {
+                image(i, j, k) = color[k];
+                image(image.width + i - width - 2 * pos, j, k) = color[k];
+            }
         }
     }
 }
