@@ -1,12 +1,12 @@
 //
 // FCAI – Structured Programming – 2024 - Assignment 3 - Task 1
 //
-// File: CS112_A3_T1_20230240_20230022_20230277
+// File: CS112_A3_T1_20230022_20230240_20230277
 // Purpose: Baby photoshop
 //
 // Authors:
-// * Ali Ahmed Mohamed Reda - S23 - 20230240
 // * Ahmed Shaaban Maghraby Mohammed - S23 - 20230022
+// * Ali Ahmed Mohamed Reda - S23 - 20230240
 // * Fares Ahmed Bakhit Hussain - S23 - 20230277
 //
 // [Ali Ahmed Mohamed Reda]: aliahmedreda34@gmail.com
@@ -24,9 +24,8 @@ using namespace std;
 
 class Image
 {
-private:
-    stbi_uc *raw_image = nullptr;
 public:
+    unsigned char* raw_image = nullptr;
     int width = 0;
     int height = 0;
     int channels = 3;
@@ -34,7 +33,7 @@ public:
     Image() = default;
 
     Image(int width, int height) : width(width), height(height) {
-        raw_image = (stbi_uc*)malloc(width * height * this->channels);
+        raw_image = (unsigned char*)malloc(width * height * this->channels);
     }
 
     ~Image() {
@@ -65,7 +64,7 @@ public:
         } else if (strcmp(extension, ".tga") == 0) {
             success = stbi_write_tga(filepath.c_str(), width, height, STBI_rgb, raw_image);
         } else if (strcmp(extension, ".jpg") == 0 || strcmp(extension, ".jpeg") == 0) {
-            success = stbi_write_jpg(filepath.c_str(), width, height, STBI_rgb, raw_image, 100);
+            success = stbi_write_jpg(filepath.c_str(), width, height, STBI_rgb, raw_image, 90);
         } else {
             throw invalid_argument("unsupported image format");
         }
@@ -93,23 +92,69 @@ public:
     }
 };
 
-void grayscale_conversion(Image& image) {
+void InvertImage(Image& image) {
     for (int i = 0; i < image.width; ++i) {
         for (int j = 0; j < image.height; ++j) {
-            unsigned  int avg = 0; // Initialize average value
-
             for (int k = 0; k < 3; ++k) {
-                avg += image(i, j, k); // Accumulate pixel values
+                image(i, j, k) = 0xFF - image(i, j, k);
             }
-
-            avg /= 3; // Calculate average
-
-            // Set all channels to the average value
-            image(i, j, 0) = avg;
-            image(i, j, 1) = avg;
-            image(i, j, 2) = avg;
         }
     }
+}
+
+void RotateImage(Image& image, int rotations) {
+    for (int n = 0; n < rotations; n++) {
+        Image flipped_image(image.height, image.width);
+        for (int i = 0; i < image.width; ++i) {
+            for (int j = 0; j < image.height; ++j) {
+                for (int k = 0; k < 3; ++k) {
+                    flipped_image(image.height - j, i, k) = image(i, j, k);
+                }
+            }
+        }
+        swap(image.raw_image, flipped_image.raw_image);
+        swap(image.width, image.height);
+    }
+}
+
+void FrameImageDrawEdge(Image &image, int width, int pos, int color[3]) {
+    for (int i = pos; i < image.width - pos; ++i) {
+        for (int j = pos; j < pos + width; j++) {
+            image(i, j, 0) = color[0];
+            image(i, j, 1) = color[1];
+            image(i, j, 2) = color[2];
+        }
+    }
+    for (int i = pos; i < image.width - pos; ++i) {
+        for (int j = image.height - pos - width; j < image.height - pos; j++) {
+            image(i, j, 0) = color[0];
+            image(i, j, 1) = color[1];
+            image(i, j, 2) = color[2];
+        }
+    }
+    for (int i = pos; i < pos + width; ++i) {
+        for (int j = pos; j < image.height - pos; j++) {
+            image(i, j, 0) = color[0];
+            image(i, j, 1) = color[1];
+            image(i, j, 2) = color[2];
+        }
+    }
+    for (int i = image.width - pos - width; i < image.width - pos; ++i) {
+        for (int j = pos; j < image.height - pos; j++) {
+            image(i, j, 0) = color[0];
+            image(i, j, 1) = color[1];
+            image(i, j, 2) = color[2];
+        }
+    }
+}
+
+void FrameImage(Image &image, int color[3]) {
+    int frame_width = image.height / 64; // px
+    int inner_frame_width = image.height / 128; // px
+    int white[3] = {255, 255, 255};
+    FrameImageDrawEdge(image, frame_width, 0, color);
+    FrameImageDrawEdge(image, inner_frame_width, frame_width, white);
+    FrameImageDrawEdge(image, inner_frame_width, frame_width + 3 * inner_frame_width, white);
 }
 
 int iinteger(istream& in, const char* p) {
@@ -166,17 +211,33 @@ int main() {
         }
 
         while (true) {
-            cout << "> 1. Grayscale conversion" << endl
-                 << "> 2. Save image" << endl;
+            cout << "> 1. Invert" << endl
+                 << "> 2. Rotate" << endl
+                 << "> 3. Frame" << endl
+                 << "> 4. Save" << endl;
 
-            int filter = irange(cin, ">> ", 1, 2);
-            if (filter == 2) {
+            int filter = irange(cin, ">> ", 1, 4);
+            if (filter == 4) {
                 break;
             }
 
             switch (filter) {
             case 1:
-                grayscale_conversion(image);
+                InvertImage(image);
+                break;
+            case 2:
+                cout << "> 1. Rotate by 90 degrees" << endl
+                     << "> 2. Rotate by 180 degrees" << endl
+                     << "> 3. Rotate by 270 degrees" << endl;
+                RotateImage(image, irange(cin, ">> ", 1, 3));
+                break;
+            case 3:
+                int color[3] = {
+                    irange(cin, ">> Frame color (R)GB: ", 0, 255),
+                    irange(cin, ">> Frame color R(G)B: ", 0, 255),
+                    irange(cin, ">> Frame color RG(B): ", 0, 255),
+                };
+                FrameImage(image, color);
                 break;
             }
         }
