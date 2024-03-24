@@ -243,6 +243,18 @@ void FlipVertical(Image& image) {
     }
 }
 
+Image cropImage(Image& image, int x, int y, int w, int h) {
+    Image result(w, h);
+    for (int a = x; a < x + w; a++) {
+        for (int b = y; b < y + h; b++) {
+            for (int c = 0; c < 3; c++) {
+                result(a - x, b - y, c) = image(a, b, c);
+            }
+        }
+    }
+   return result; 
+}
+
 int main() {
     while (true) {
         cout << "> 1. Open new image" << endl
@@ -277,7 +289,7 @@ int main() {
                 << "> 5. Flip" << endl
                 << "> 6. Rotate" << endl
                 // << "> 7. Darken or Lighten" << endl
-                // << "> 8. Crop Image" << endl
+                << "> 8. Crop Image" << endl
                 << "> 9. Frame" << endl
                 // << "> 10. Edges" << endl
                 // << "> 11. Resize" << endl
@@ -313,6 +325,15 @@ int main() {
                      << "> 3. Rotate by 270 degrees" << endl;
                 RotateImage(image, irange(cin, ">> ", 1, 3));
                 break;
+            case 8: {
+                int x = irange(cin, ">> the x value of starting point: ", 0, image.width);
+                int y = irange(cin, ">> the y value of starting point: ", 0, image.height);
+                int w = irange(cin, ">> Enter the width of area to crop: ", 0, image.width - x);
+                int h = irange(cin, ">> Enter the height of area to crop: ", 0, image.height - y);
+
+                image = cropImage(image, x, y, w, h);
+                break;
+            }
             case 9: {
                 int color[3] = {
                     irange(cin, ">> Frame color (R)GB: ", 0, 255),
