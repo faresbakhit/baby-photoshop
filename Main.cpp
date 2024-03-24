@@ -193,6 +193,56 @@ void BlackAndWhite(Image& image) {
   }
 }
 
+void FlipHorizontally(Image& image) {
+    int width = image.width;
+    int middle = width / 2;
+    bool isEven = width % 2 == 0;
+    int end = isEven ? middle - 2 : middle - 1;
+    for (int i = 0; i < end; i++) {
+        for (int j = 0; j < image.height; j++) {
+            for (int c = 0; c < 3; c++) {
+                int temp = image(i, j, c);
+                image(i, j, c) = image(width - i - 1, j, c);
+                image(width - i - 1, j, c) = temp;
+            }
+        }
+    }
+    if (isEven) {
+        for (int j = 0; j < image.height; j++) {
+            for (int c = 0; c < 3; c++) {
+                int temp = image(middle, j, c);
+                image(middle, j, c) = image(middle - 1, j, c);
+                image(middle - 1, j, c) = temp;
+            }
+        }
+    }
+}
+
+void FlipVertical(Image& image) {
+    int height = image.height;
+    int middle = height / 2;
+    bool isEven = height % 2 == 0;
+    int end = isEven ? middle - 2 : middle - 1;
+    for (int j = 0; j < end; j++) {
+        for (int i = 0; i < image.width; ++i) {
+            for (int c = 0; c < 3; c++) {
+                int temp = image(i, j, c);
+                image(i, j, c) = image(i, height - j - 1, c);
+                image(i, height - j - 1, c) = temp;
+            }
+        }
+    }
+    if (isEven) {
+        for (int i = 0; i < image.width; ++i) {
+            for (int c = 0; c < 3; c++) {
+                int temp = image(i, middle, c);
+                image(i, middle, c) = image(i, middle - 1, c);
+                image(i, middle - 1, c) = temp;
+            }
+        }
+    }
+}
+
 int main() {
     while (true) {
         cout << "> 1. Open new image" << endl
@@ -223,10 +273,11 @@ int main() {
                  << "> 2. Rotate" << endl
                  << "> 3. Frame" << endl
                  << "> 4. Black And White" << endl
-                 << "> 5. Save" << endl;
+                 << "> 5. Flip" << endl
+                 << "> 6. Save" << endl;
 
-            int filter = irange(cin, ">> ", 1, 5);
-            if (filter == 5) {
+            int filter = irange(cin, ">> ", 1, 6);
+            if (filter == 6) {
                 break;
             }
 
@@ -240,10 +291,7 @@ int main() {
                      << "> 3. Rotate by 270 degrees" << endl;
                 RotateImage(image, irange(cin, ">> ", 1, 3));
                 break;
-            case 4:
-                BlackAndWhite(image);
-                break;
-            case 3:
+            case 3: {
                 int color[3] = {
                     irange(cin, ">> Frame color (R)GB: ", 0, 255),
                     irange(cin, ">> Frame color R(G)B: ", 0, 255),
@@ -251,6 +299,21 @@ int main() {
                 };
                 FrameImage(image, color);
                 break;
+            }
+            case 4:
+                BlackAndWhite(image);
+                break;
+            case 5: {
+                cout << "> 1. Flip Horizontally" << endl
+                     << "> 2. Flip Vertically" << endl;
+                bool flipHorizontally = irange(cin, ">> ", 1, 2) == 1;
+                if (flipHorizontally) {
+                    FlipHorizontally(image);
+                } else {
+                    FlipVertical(image);
+                }
+                break;
+            }
             }
         }
 
