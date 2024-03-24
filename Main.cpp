@@ -50,6 +50,9 @@ public:
     }
 
     void save(const string& filepath) {
+        if (raw_image == nullptr) {
+            throw out_of_range("image not initalized");
+        }
         const char* extension = strrchr(filepath.c_str(), '.');
         int success;
 
@@ -255,6 +258,27 @@ Image cropImage(Image& image, int x, int y, int w, int h) {
    return result; 
 }
 
+Image resizeImage(Image& image, int w, int h) {
+    Image result(w, h);
+    bool w_bigger = w > image.width;
+    bool h_bigger = h > image.height;
+    float ratio_w = w_bigger ? (float) image.width / (float) w : (float) w / (float) image.width;
+    float ratio_h = h_bigger ? (float) image.height / (float) h : (float) h / (float) image.height;
+    float end_w = w_bigger ? w : image.width;
+    float end_h = h_bigger ? h : image.height;
+
+    for (float i = 0; i < end_w; i++) {
+        for (float y = 0; y < end_h; y++) {
+            for (int c = 0; c < 3; c++) {
+                result(w_bigger ? i : (int) round(i * ratio_w), h_bigger ? y : (int) round(y * ratio_h), c) 
+                    = image(w_bigger ? (int) round(i * ratio_w) : i, h_bigger ? (int) round(y * ratio_h) : y, c);
+                // result(i, y, c) = image((int) floor(i * ratio_w), (int) floor(y * ratio_h), c);
+            }
+        }
+    }
+    return result;
+}
+
 int main() {
     while (true) {
         cout << "> 1. Open new image" << endl
@@ -292,7 +316,7 @@ int main() {
                 << "> 8. Crop Image" << endl
                 << "> 9. Frame" << endl
                 // << "> 10. Edges" << endl
-                // << "> 11. Resize" << endl
+                << "> 11. Resize" << endl
                 // << "> 12. Blur" << endl
                 << "> 13. Save" << endl;
 
@@ -341,6 +365,13 @@ int main() {
                     irange(cin, ">> Frame color RG(B): ", 0, 255),
                 };
                 FrameImage(image, color);
+                break;
+            }
+            case 11: {
+                int w = irange(cin, ">> Enter the width of new image: ", 0, 1000000000);
+                int h = irange(cin, ">> Enter the height of new image: ", 0, 1000000000);
+
+                image = resizeImage(image, w, h);
                 break;
             }
             }
