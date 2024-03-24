@@ -269,39 +269,32 @@ int main() {
         }
 
         while (true) {
-            cout << "> 1. Invert" << endl
-                 << "> 2. Rotate" << endl
-                 << "> 3. Frame" << endl
-                 << "> 4. Black And White" << endl
-                 << "> 5. Flip" << endl
-                 << "> 6. Save" << endl;
+            cout 
+                // << "> 1. Grayscale" << endl
+                << "> 2. Black and White" << endl
+                << "> 3. Invert" << endl
+                // << "> 4. Merge Images" << endl
+                << "> 5. Flip" << endl
+                << "> 6. Rotate" << endl
+                // << "> 7. Darken or Lighten" << endl
+                // << "> 8. Crop Image" << endl
+                << "> 9. Frame" << endl
+                // << "> 10. Edges" << endl
+                // << "> 11. Resize" << endl
+                // << "> 12. Blur" << endl
+                << "> 13. Save" << endl;
 
-            int filter = irange(cin, ">> ", 1, 6);
-            if (filter == 6) {
+            int filter = irange(cin, ">> ", 1, 13);
+            if (filter == 13) {
                 break;
             }
 
             switch (filter) {
-            case 1:
-                InvertImage(image);
-                break;
             case 2:
-                cout << "> 1. Rotate by 90 degrees" << endl
-                     << "> 2. Rotate by 180 degrees" << endl
-                     << "> 3. Rotate by 270 degrees" << endl;
-                RotateImage(image, irange(cin, ">> ", 1, 3));
-                break;
-            case 3: {
-                int color[3] = {
-                    irange(cin, ">> Frame color (R)GB: ", 0, 255),
-                    irange(cin, ">> Frame color R(G)B: ", 0, 255),
-                    irange(cin, ">> Frame color RG(B): ", 0, 255),
-                };
-                FrameImage(image, color);
-                break;
-            }
-            case 4:
                 BlackAndWhite(image);
+                break;
+            case 3:
+                InvertImage(image);
                 break;
             case 5: {
                 cout << "> 1. Flip Horizontally" << endl
@@ -312,6 +305,21 @@ int main() {
                 } else {
                     FlipVertical(image);
                 }
+                break;
+            }
+            case 6:
+                cout << "> 1. Rotate by 90 degrees" << endl
+                     << "> 2. Rotate by 180 degrees" << endl
+                     << "> 3. Rotate by 270 degrees" << endl;
+                RotateImage(image, irange(cin, ">> ", 1, 3));
+                break;
+            case 9: {
+                int color[3] = {
+                    irange(cin, ">> Frame color (R)GB: ", 0, 255),
+                    irange(cin, ">> Frame color R(G)B: ", 0, 255),
+                    irange(cin, ">> Frame color RG(B): ", 0, 255),
+                };
+                FrameImage(image, color);
                 break;
             }
             }
