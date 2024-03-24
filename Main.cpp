@@ -173,6 +173,26 @@ int irange(istream& in, const char* p, int min, int max) {
     }
 }
 
+void BlackAndWhite(Image& image) {
+  for (int i = 0; i < image.width; ++i) {
+    for (int j = 0; j < image.height; ++j) {
+      int r = image(i, j, 0);
+      int g = image(i, j, 1);
+      int b = image(i, j, 1);
+      int grayScale = (r + g + b) / 3;
+      if (grayScale > 126) {
+        image(i, j, 0) = 255;
+        image(i, j, 1) = 255;
+        image(i, j, 2) = 255;
+      } else {
+        image(i, j, 0) = 0;
+        image(i, j, 1) = 0;
+        image(i, j, 2) = 0;
+      }
+    }
+  }
+}
+
 int main() {
     while (true) {
         cout << "> 1. Open new image" << endl
@@ -202,10 +222,11 @@ int main() {
             cout << "> 1. Invert" << endl
                  << "> 2. Rotate" << endl
                  << "> 3. Frame" << endl
-                 << "> 4. Save" << endl;
+                 << "> 4. Black And White" << endl
+                 << "> 5. Save" << endl;
 
-            int filter = irange(cin, ">> ", 1, 4);
-            if (filter == 4) {
+            int filter = irange(cin, ">> ", 1, 5);
+            if (filter == 5) {
                 break;
             }
 
@@ -218,6 +239,9 @@ int main() {
                      << "> 2. Rotate by 180 degrees" << endl
                      << "> 3. Rotate by 270 degrees" << endl;
                 RotateImage(image, irange(cin, ">> ", 1, 3));
+                break;
+            case 4:
+                BlackAndWhite(image);
                 break;
             case 3:
                 int color[3] = {
