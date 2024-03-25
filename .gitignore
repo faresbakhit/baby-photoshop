@@ -32,6 +32,18 @@
 *.app
 
 # Test images
-*.jpg
 *.png
+*.bmp
+*.tga
+*.jpg
 *.jpeg
+
+# Visual Studio Code
+.vscode/
+
+# JetBrains IDE
+.idea/
+
+# CMake
+cmake-build-*/
+CMakeLists.txt
