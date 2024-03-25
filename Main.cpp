@@ -9,9 +9,27 @@
 // * Ali Ahmed Mohamed Reda - S23 - 20230240
 // * Fares Ahmed Bakhit Hussain - S23 - 20230277
 //
-// [Ali Ahmed Mohamed Reda]: aliahmedreda34@gmail.com
 // [Ahmed Shaaban Maghraby Mohammed]: modymansh05@gmail.com
+// [Ali Ahmed Mohamed Reda]: aliahmedreda34@gmail.com
 // [Fares Ahmed Bakhit Hussain]: faresa.bakhit@gmail.com
+//
+// Ali Ahmed Mohamed Reda:
+// * Filter 1: Grayscale Conversion
+// * Filter 4: Merge Images
+// * Filter 7: Darken and Lighten Image
+// * Filter 10: Detect Image Edges
+//
+// Ahmed Shaaban Maghraby Mohammed:
+// * Filter 2: Black and White
+// * Filter 5: Flip Image
+// * Filter 8: Crop Images
+// * Filter 11: Resizing Images
+//
+// Fares Ahmed Bakhit Hussain:
+// * Filter 3: Invert Image
+// * Filter 6: Rotate Image
+// * Filter 9: Adding a Frame to the Picture
+// * Filter 12: Blur Images
 //
 
 #include <iostream>
@@ -23,8 +41,7 @@
 
 using namespace std;
 
-class Image
-{
+class Image {
 public:
     unsigned char* raw_image = nullptr;
     int width = 0;
@@ -149,6 +166,167 @@ void FrameImage(Image &image, int color[3]) {
     FrameImageDrawEdge(image, inner_frame_width, frame_width + 3 * inner_frame_width, white);
 }
 
+void BlackAndWhiteImage(Image& image) {
+    for (int i = 0; i < image.width; ++i) {
+        for (int j = 0; j < image.height; ++j) {
+            int r = image(i, j, 0);
+            int g = image(i, j, 1);
+            int b = image(i, j, 2);
+            int grayScale = (r + g + b) / 3;
+            if (grayScale > 126) {
+                image(i, j, 0) = 255;
+                image(i, j, 1) = 255;
+                image(i, j, 2) = 255;
+            } else {
+                image(i, j, 0) = 0;
+                image(i, j, 1) = 0;
+                image(i, j, 2) = 0;
+            }
+        }
+    }
+}
+
+void FlipHorizontally(Image& image) {
+    int width = image.width;
+    int middle = width / 2;
+    bool isEven = width % 2 == 0;
+    int end = isEven ? middle - 2 : middle - 1;
+    for (int i = 0; i < end; i++) {
+        for (int j = 0; j < image.height; j++) {
+            for (int c = 0; c < 3; c++) {
+                int temp = image(i, j, c);
+                image(i, j, c) = image(width - i - 1, j, c);
+                image(width - i - 1, j, c) = temp;
+            }
+        }
+    }
+    if (isEven) {
+        for (int j = 0; j < image.height; j++) {
+            for (int c = 0; c < 3; c++) {
+                int temp = image(middle, j, c);
+                image(middle, j, c) = image(middle - 1, j, c);
+                image(middle - 1, j, c) = temp;
+            }
+        }
+    }
+}
+
+void FlipVertically(Image& image) {
+    int height = image.height;
+    int middle = height / 2;
+    bool isEven = height % 2 == 0;
+    int end = isEven ? middle - 2 : middle - 1;
+    for (int j = 0; j < end; j++) {
+        for (int i = 0; i < image.width; ++i) {
+            for (int c = 0; c < 3; c++) {
+                int temp = image(i, j, c);
+                image(i, j, c) = image(i, height - j - 1, c);
+                image(i, height - j - 1, c) = temp;
+            }
+        }
+    }
+    if (isEven) {
+        for (int i = 0; i < image.width; ++i) {
+            for (int c = 0; c < 3; c++) {
+                int temp = image(i, middle, c);
+                image(i, middle, c) = image(i, middle - 1, c);
+                image(i, middle - 1, c) = temp;
+            }
+        }
+    }
+}
+
+void CropImage(Image& image, int x, int y, int w, int h) {
+    Image result(w, h);
+    for (int a = x; a < x + w; a++) {
+        for (int b = y; b < y + h; b++) {
+            for (int c = 0; c < 3; c++) {
+                result(a - x, b - y, c) = image(a, b, c);
+            }
+        }
+    }
+
+    swap(image.raw_image, result.raw_image);
+    image.width = w;
+    image.height = h;
+}
+
+void ResizeImage(Image& image, int w, int h) {
+    Image result(w, h);
+    bool w_bigger = w > image.width;
+    bool h_bigger = h > image.height;
+    float ratio_w = w_bigger ? (float) image.width / (float) w : (float) w / (float) image.width;
+    float ratio_h = h_bigger ? (float) image.height / (float) h : (float) h / (float) image.height;
+    float end_w = w_bigger ? w : image.width;
+    float end_h = h_bigger ? h : image.height;
+
+    for (float i = 0; i < end_w; i++) {
+        for (float y = 0; y < end_h; y++) {
+            for (int c = 0; c < 3; c++) {
+                result(w_bigger ? i : (int) floor(i * ratio_w), h_bigger ? y : (int) floor(y * ratio_h), c)
+                    = image(w_bigger ? (int) floor(i * ratio_w) : i, h_bigger ? (int) floor(y * ratio_h) : y, c);
+            }
+        }
+    }
+
+    swap(image.raw_image, result.raw_image);
+    image.width = w;
+    image.height = h;
+}
+
+
+void GrayscaleImage(Image& image){
+    for (int i = 0; i < image.width; i++){
+        for (int j = 0; j < image.height; j++){
+            int red = image(i, j, 0);
+            int green = image(i, j, 1);
+            int blue = image(i, j, 2);
+            int grayscale_value = (int)(0.21 * red + 0.72 * green + 0.07 * blue);
+            for (int k = 0; k < 3; k++){
+                image(i, j, k) = grayscale_value;
+            }
+        }
+    }
+}
+
+void MergeImage(Image& image1, Image& image2){
+    if (image2.width != image1.width || image2.height != image1.height)
+        ResizeImage(image2, image1.width, image1.height);
+
+    for (int i = 0; i < image1.width; i++) {
+        for (int j = 0; j < image1.height; j++) {
+            int red1 = image1(i,j,0);
+            int green1 = image1(i,j,1);
+            int blue1 = image1(i,j,2);
+
+            int red2 = image2(i,j,0);
+            int green2 = image2(i,j,1);
+            int blue2 = image2(i,j,2);
+            int avg_red = (int)((red1 + red2) / 2);
+            int avg_green = (int)((green1 + green2) / 2);
+            int avg_blue = (int)((blue1 + blue2) / 2);
+
+            image1(i, j, 0) = avg_red;
+            image1(i, j, 1) = avg_green;
+            image1(i, j, 2) = avg_blue;
+        }
+    }
+}
+
+void DarkenImage(Image& image) {
+    for (int i = 0; i < image.width; i++)
+        for (int j = 0; j < image.height; j++)
+            for (int k = 0;  k < 3; k++)
+                image(i,j,k) = image(i,j,k)/2;
+}
+
+void LightenImage(Image& image) {
+    for (int i = 0; i < image.width; i++)
+        for (int j = 0; j < image.height; j++)
+            for (int k = 0;  k < 3; k++)
+                image(i, j, k) = min(255, image(i, j, k) + 50);
+}
+
 int iinteger(istream& in, const char* p) {
     int i;
     while (true) {
@@ -177,184 +355,23 @@ int irange(istream& in, const char* p, int min, int max) {
     }
 }
 
-void BlackAndWhite(Image& image) {
-  for (int i = 0; i < image.width; ++i) {
-    for (int j = 0; j < image.height; ++j) {
-      int r = image(i, j, 0);
-      int g = image(i, j, 1);
-      int b = image(i, j, 2);
-      int grayScale = (r + g + b) / 3;
-      if (grayScale > 126) {
-        image(i, j, 0) = 255;
-        image(i, j, 1) = 255;
-        image(i, j, 2) = 255;
-      } else {
-        image(i, j, 0) = 0;
-        image(i, j, 1) = 0;
-        image(i, j, 2) = 0;
-      }
-    }
-  }
-}
+void iimage(istream& in, const char* p, Image& image) {
+    while (true) {
+        string filepath;
+        cout << p;
+        getline(cin, filepath);
 
-void FlipHorizontally(Image& image) {
-    int width = image.width;
-    int middle = width / 2;
-    bool isEven = width % 2 == 0;
-    int end = isEven ? middle - 2 : middle - 1;
-    for (int i = 0; i < end; i++) {
-        for (int j = 0; j < image.height; j++) {
-            for (int c = 0; c < 3; c++) {
-                int temp = image(i, j, c);
-                image(i, j, c) = image(width - i - 1, j, c);
-                image(width - i - 1, j, c) = temp;
-            }
-        }
-    }
-    if (isEven) {
-        for (int j = 0; j < image.height; j++) {
-            for (int c = 0; c < 3; c++) {
-                int temp = image(middle, j, c);
-                image(middle, j, c) = image(middle - 1, j, c);
-                image(middle - 1, j, c) = temp;
-            }
+        try {
+            image.load(filepath);
+            return;
+        } catch(const exception& e) {
+            cout << "> error: " << e.what() << endl;
+            continue;
         }
     }
 }
-
-void FlipVertical(Image& image) {
-    int height = image.height;
-    int middle = height / 2;
-    bool isEven = height % 2 == 0;
-    int end = isEven ? middle - 2 : middle - 1;
-    for (int j = 0; j < end; j++) {
-        for (int i = 0; i < image.width; ++i) {
-            for (int c = 0; c < 3; c++) {
-                int temp = image(i, j, c);
-                image(i, j, c) = image(i, height - j - 1, c);
-                image(i, height - j - 1, c) = temp;
-            }
-        }
-    }
-    if (isEven) {
-        for (int i = 0; i < image.width; ++i) {
-            for (int c = 0; c < 3; c++) {
-                int temp = image(i, middle, c);
-                image(i, middle, c) = image(i, middle - 1, c);
-                image(i, middle - 1, c) = temp;
-            }
-        }
-    }
-}
-
-void cropImage(Image& image, int x, int y, int w, int h) {
-    Image result(w, h);
-    for (int a = x; a < x + w; a++) {
-        for (int b = y; b < y + h; b++) {
-            for (int c = 0; c < 3; c++) {
-                result(a - x, b - y, c) = image(a, b, c);
-            }
-        }
-    }
-
-    swap(image.raw_image, result.raw_image);
-    image.width = w;
-    image.height = h;
-}
-
-void resizeImage(Image& image, int w, int h) {
-    Image result(w, h);
-    bool w_bigger = w > image.width;
-    bool h_bigger = h > image.height;
-    float ratio_w = w_bigger ? (float) image.width / (float) w : (float) w / (float) image.width;
-    float ratio_h = h_bigger ? (float) image.height / (float) h : (float) h / (float) image.height;
-    float end_w = w_bigger ? w : image.width;
-    float end_h = h_bigger ? h : image.height;
-
-    for (float i = 0; i < end_w; i++) {
-        for (float y = 0; y < end_h; y++) {
-            for (int c = 0; c < 3; c++) {
-                result(w_bigger ? i : (int) floor(i * ratio_w), h_bigger ? y : (int) floor(y * ratio_h), c) 
-                    = image(w_bigger ? (int) floor(i * ratio_w) : i, h_bigger ? (int) floor(y * ratio_h) : y, c);
-            }
-        }
-    }
-
-    swap(image.raw_image, result.raw_image);
-    image.width = w;
-    image.height = h;
-}
-
-
-void Grayscale_Conversion(Image& image){
-    for(int i = 0 ; i < image.width ; i++){
-        for(int j = 0 ; j < image.height ; j++){
-            int red = image(i, j, 0);
-            int green = image(i, j, 1);
-            int blue = image(i, j, 2);
-            int grayscale_value = (int)(0.21 * red + 0.72 * green + 0.07 * blue);
-            for(int k = 0 ; k < 3 ; k++){
-                image(i, j, k) = grayscale_value;
-            }
-        }
-    }
-}
-
-void merge(Image& image1, Image& image2){
-
-    if(image2.width != image1.width || image2.height != image1.height)
-        resizeImage(image2, image1.width, image1.height);
-    for(int i = 0 ; i < image1.width ; i++) {
-        for (int j = 0; j < image1.height; j++) {
-            int red1 = image1(i,j,0);
-            int green1 = image1(i,j,1);
-            int blue1 = image1(i,j,2);
-
-            int red2 = image2(i,j,0);
-            int green2 = image2(i,j,1);
-            int blue2 = image2(i,j,2);
-            int avg_red = (int)((red1 + red2) / 2);
-            int avg_green = (int)((green1 + green2) / 2);
-            int avg_blue = (int)((blue1 + blue2) / 2);
-
-            image1(i, j, 0) = avg_red;
-            image1(i, j, 1) = avg_green;
-            image1(i, j, 2) = avg_blue;
-        }
-    }
-
-}
-
-
-
-void Darken_and_Lighten(Image& image){
-    int ch;
-    cout<<"1)Darker by 50%\n"
-          "2)Lighter by 50%";
-    cin>>ch;
-    switch(ch){
-        case 1:
-            for(int i = 0 ; i < image.width ; i++)
-                for (int j = 0; j < image.height; j++)
-                    for(int k = 0 ;  k < 3 ; k++)
-                        image(i,j,k) = image(i,j,k)/2;
-
-            break;
-
-        case 2:
-            for(int i = 0 ; i < image.width ; i++)
-                for (int j = 0; j < image.height; j++)
-                    for(int k = 0 ;  k < 3 ; k++)
-                        image(i, j, k) = min(255, image(i, j, k) + 50);
-
-            break;
-    }
-}
-
-
 
 int main() {
-    string filepath2;
     while (true) {
         cout << "> 1. Open new image" << endl
              << "> 2. Exit" << endl;
@@ -365,22 +382,10 @@ int main() {
         }
 
         Image image, image2;
-        while (true) {
-            string filepath;
-            cout << ">> Enter image path: ";
-            getline(cin, filepath);
-
-            try {
-                image.load(filepath);
-                break;
-            } catch(const exception& e) {
-                cout << "> error: " << e.what() << endl;
-                continue;
-            }
-        }
+        iimage(cin, ">> Enter image path: ", image);
 
         while (true) {
-            cout 
+            cout
                 << "> 1. Grayscale" << endl
                 << "> 2. Black and White" << endl
                 << "> 3. Invert" << endl
@@ -402,19 +407,17 @@ int main() {
 
             switch (filter) {
             case 1:
-                Grayscale_Conversion(image);
+                GrayscaleImage(image);
                 break;
             case 2:
-                BlackAndWhite(image);
+                BlackAndWhiteImage(image);
                 break;
             case 3:
                 InvertImage(image);
                 break;
             case 4:
-                cout<<"Enter the path of the second image: ";
-                getline(cin, filepath2);
-                image2.load(filepath2);
-                merge(image, image2);
+                iimage(cin, ">> Enter second image path: ", image2);
+                MergeImage(image, image2);
                 break;
             case 5: {
                 cout << "> 1. Flip Horizontally" << endl
@@ -423,7 +426,7 @@ int main() {
                 if (flipHorizontally) {
                     FlipHorizontally(image);
                 } else {
-                    FlipVertical(image);
+                    FlipVertically(image);
                 }
                 break;
             }
@@ -434,18 +437,22 @@ int main() {
                 RotateImage(image, irange(cin, ">> ", 1, 3));
                 break;
             case 7:
-                Darken_and_Lighten(image);
+                cout << "> 1. Darker by 50%" << endl
+                     << "> 2. Lighter by 50%" << endl;
+                if (irange(cin, ">> ", 1, 2) == 1) {
+                    DarkenImage(image);
+                } else {
+                    LightenImage(image);
+                }
                 break;
-            case 8: {
+            case 8:
                 int x = irange(cin, ">> the x value of starting point: ", 0, image.width);
                 int y = irange(cin, ">> the y value of starting point: ", 0, image.height);
                 int w = irange(cin, ">> Enter the width of area to crop: ", 0, image.width - x);
                 int h = irange(cin, ">> Enter the height of area to crop: ", 0, image.height - y);
-
-                cropImage(image, x, y, w, h);
+                CropImage(image, x, y, w, h);
                 break;
-            }
-            case 9: {
+            case 9:
                 int color[3] = {
                     irange(cin, ">> Frame color (R)GB: ", 0, 255),
                     irange(cin, ">> Frame color R(G)B: ", 0, 255),
@@ -453,14 +460,11 @@ int main() {
                 };
                 FrameImage(image, color);
                 break;
-            }
-            case 11: {
-                int w = irange(cin, ">> Enter the width of new image: ", 0, 1000000000);
-                int h = irange(cin, ">> Enter the height of new image: ", 0, 1000000000);
-
-                resizeImage(image, w, h);
+            case 11:
+                int w = irange(cin, ">> Enter the width of new image: ", 0, INT_MAX);
+                int h = irange(cin, ">> Enter the height of new image: ", 0, INT_MAX);
+                ResizeImage(image, w, h);
                 break;
-            }
             }
         }
 
@@ -468,13 +472,11 @@ int main() {
             string filepath;
             cout << ">> Enter new image path: ";
             getline(cin, filepath);
-
             try {
                 image.save(filepath);
                 break;
             } catch(const exception& e) {
                 cout << "> error: " << e.what() << endl;
-                continue;
             }
         }
     }
