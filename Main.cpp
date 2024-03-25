@@ -246,7 +246,7 @@ void FlipVertical(Image& image) {
     }
 }
 
-Image cropImage(Image& image, int x, int y, int w, int h) {
+void cropImage(Image& image, int x, int y, int w, int h) {
     Image result(w, h);
     for (int a = x; a < x + w; a++) {
         for (int b = y; b < y + h; b++) {
@@ -255,10 +255,13 @@ Image cropImage(Image& image, int x, int y, int w, int h) {
             }
         }
     }
-   return result; 
+
+    swap(image.raw_image, result.raw_image);
+    image.width = w;
+    image.height = h;
 }
 
-Image resizeImage(Image& image, int w, int h) {
+void resizeImage(Image& image, int w, int h) {
     Image result(w, h);
     bool w_bigger = w > image.width;
     bool h_bigger = h > image.height;
@@ -270,13 +273,15 @@ Image resizeImage(Image& image, int w, int h) {
     for (float i = 0; i < end_w; i++) {
         for (float y = 0; y < end_h; y++) {
             for (int c = 0; c < 3; c++) {
-                result(w_bigger ? i : (int) round(i * ratio_w), h_bigger ? y : (int) round(y * ratio_h), c) 
-                    = image(w_bigger ? (int) round(i * ratio_w) : i, h_bigger ? (int) round(y * ratio_h) : y, c);
-                // result(i, y, c) = image((int) floor(i * ratio_w), (int) floor(y * ratio_h), c);
+                result(w_bigger ? i : (int) floor(i * ratio_w), h_bigger ? y : (int) floor(y * ratio_h), c) 
+                    = image(w_bigger ? (int) floor(i * ratio_w) : i, h_bigger ? (int) floor(y * ratio_h) : y, c);
             }
         }
     }
-    return result;
+
+    swap(image.raw_image, result.raw_image);
+    image.width = w;
+    image.height = h;
 }
 
 int main() {
@@ -355,7 +360,7 @@ int main() {
                 int w = irange(cin, ">> Enter the width of area to crop: ", 0, image.width - x);
                 int h = irange(cin, ">> Enter the height of area to crop: ", 0, image.height - y);
 
-                image = cropImage(image, x, y, w, h);
+                cropImage(image, x, y, w, h);
                 break;
             }
             case 9: {
@@ -371,7 +376,7 @@ int main() {
                 int w = irange(cin, ">> Enter the width of new image: ", 0, 1000000000);
                 int h = irange(cin, ">> Enter the height of new image: ", 0, 1000000000);
 
-                image = resizeImage(image, w, h);
+                resizeImage(image, w, h);
                 break;
             }
             }
