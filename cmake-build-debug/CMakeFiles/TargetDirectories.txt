@@ -1,0 +1,3 @@
+D:/downlouds/coding area/baby-photoshop/cmake-build-debug/CMakeFiles/baby_photoshop.dir
+D:/downlouds/coding area/baby-photoshop/cmake-build-debug/CMakeFiles/edit_cache.dir
+D:/downlouds/coding area/baby-photoshop/cmake-build-debug/CMakeFiles/rebuild_cache.dir

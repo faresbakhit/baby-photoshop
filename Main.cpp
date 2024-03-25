@@ -15,6 +15,7 @@
 //
 
 #include <iostream>
+#include <limits>
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -181,7 +182,7 @@ void BlackAndWhite(Image& image) {
     for (int j = 0; j < image.height; ++j) {
       int r = image(i, j, 0);
       int g = image(i, j, 1);
-      int b = image(i, j, 1);
+      int b = image(i, j, 2);
       int grayScale = (r + g + b) / 3;
       if (grayScale > 126) {
         image(i, j, 0) = 255;
@@ -284,7 +285,76 @@ void resizeImage(Image& image, int w, int h) {
     image.height = h;
 }
 
+
+void Grayscale_Conversion(Image& image){
+    for(int i = 0 ; i < image.width ; i++){
+        for(int j = 0 ; j < image.height ; j++){
+            int red = image(i, j, 0);
+            int green = image(i, j, 1);
+            int blue = image(i, j, 2);
+            int grayscale_value = (int)(0.21 * red + 0.72 * green + 0.07 * blue);
+            for(int k = 0 ; k < 3 ; k++){
+                image(i, j, k) = grayscale_value;
+            }
+        }
+    }
+}
+
+void merge(Image& image1, Image& image2){
+
+    if(image2.width != image1.width || image2.height != image1.height)
+        resizeImage(image2, image1.width, image1.height);
+    for(int i = 0 ; i < image1.width ; i++) {
+        for (int j = 0; j < image1.height; j++) {
+            int red1 = image1(i,j,0);
+            int green1 = image1(i,j,1);
+            int blue1 = image1(i,j,2);
+
+            int red2 = image2(i,j,0);
+            int green2 = image2(i,j,1);
+            int blue2 = image2(i,j,2);
+            int avg_red = (int)((red1 + red2) / 2);
+            int avg_green = (int)((green1 + green2) / 2);
+            int avg_blue = (int)((blue1 + blue2) / 2);
+
+            image1(i, j, 0) = avg_red;
+            image1(i, j, 1) = avg_green;
+            image1(i, j, 2) = avg_blue;
+        }
+    }
+
+}
+
+
+
+void Darken_and_Lighten(Image& image){
+    int ch;
+    cout<<"1)Darker by 50%\n"
+          "2)Lighter by 50%";
+    cin>>ch;
+    switch(ch){
+        case 1:
+            for(int i = 0 ; i < image.width ; i++)
+                for (int j = 0; j < image.height; j++)
+                    for(int k = 0 ;  k < 3 ; k++)
+                        image(i,j,k) = image(i,j,k)/2;
+
+            break;
+
+        case 2:
+            for(int i = 0 ; i < image.width ; i++)
+                for (int j = 0; j < image.height; j++)
+                    for(int k = 0 ;  k < 3 ; k++)
+                        image(i, j, k) = min(255, image(i, j, k) + 50);
+
+            break;
+    }
+}
+
+
+
 int main() {
+    string filepath2;
     while (true) {
         cout << "> 1. Open new image" << endl
              << "> 2. Exit" << endl;
@@ -294,7 +364,7 @@ int main() {
             break;
         }
 
-        Image image;
+        Image image, image2;
         while (true) {
             string filepath;
             cout << ">> Enter image path: ";
@@ -311,16 +381,16 @@ int main() {
 
         while (true) {
             cout 
-                // << "> 1. Grayscale" << endl
+                << "> 1. Grayscale" << endl
                 << "> 2. Black and White" << endl
                 << "> 3. Invert" << endl
-                // << "> 4. Merge Images" << endl
+                << "> 4. Merge Images" << endl
                 << "> 5. Flip" << endl
                 << "> 6. Rotate" << endl
-                // << "> 7. Darken or Lighten" << endl
+                << "> 7. Darken or Lighten" << endl
                 << "> 8. Crop Image" << endl
                 << "> 9. Frame" << endl
-                // << "> 10. Edges" << endl
+                //<< "> 10. Edges" << endl
                 << "> 11. Resize" << endl
                 // << "> 12. Blur" << endl
                 << "> 13. Save" << endl;
@@ -331,11 +401,20 @@ int main() {
             }
 
             switch (filter) {
+            case 1:
+                Grayscale_Conversion(image);
+                break;
             case 2:
                 BlackAndWhite(image);
                 break;
             case 3:
                 InvertImage(image);
+                break;
+            case 4:
+                cout<<"Enter the path of the second image: ";
+                getline(cin, filepath2);
+                image2.load(filepath2);
+                merge(image, image2);
                 break;
             case 5: {
                 cout << "> 1. Flip Horizontally" << endl
@@ -353,6 +432,9 @@ int main() {
                      << "> 2. Rotate by 180 degrees" << endl
                      << "> 3. Rotate by 270 degrees" << endl;
                 RotateImage(image, irange(cin, ">> ", 1, 3));
+                break;
+            case 7:
+                Darken_and_Lighten(image);
                 break;
             case 8: {
                 int x = irange(cin, ">> the x value of starting point: ", 0, image.width);
