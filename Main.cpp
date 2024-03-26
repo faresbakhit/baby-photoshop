@@ -34,6 +34,7 @@
 
 #include <iostream>
 #include <limits>
+#include <cmath>
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -415,6 +416,39 @@ void LightenImage(Image& image) {
                 image(i, j, k) = min(255, image(i, j, k) + 50);
 }
 
+void Detect_Image_Edges(Image& image) {
+    int sobel_x[3][3] = {{-1, 0, 1}, {-2, 0, 2}, {-1, 0, 1} };
+    int sobel_y[3][3] = {{-1, -2, -1}, {0, 0, 0}, {1, 2, 1} };
+    Image edges(image.width, image.height);
+    for (int y = 1; y < image.height - 1; y++) {
+        for (int x = 1; x < image.width - 1; x++) {
+            int x_gradient = 0, y_gradient = 0;
+            for (int j = -1; j <= 1; j++) {
+                for (int i = -1; i <= 1; i++) {
+                    x_gradient += sobel_x[j + 1][i + 1] * image(x + i, y + j, 0);
+                    y_gradient += sobel_y[j + 1][i + 1] * image(x + i, y + j, 0);
+                }
+            }
+
+            int magnitude = static_cast<int>(sqrt(x_gradient * x_gradient + y_gradient * y_gradient));
+            magnitude = max(0, min(255, magnitude));
+            for (int c = 0; c < 3; ++c) {
+                edges(x, y, c) = magnitude;
+            }
+        }
+    }
+    for (int y = 0; y < image.height; y++) {
+        for (int x = 0; x < image.width; x++) {
+            for (int c = 0; c < 3; c++) {
+                image(x, y, c) = edges(x, y, c);
+            }
+        }
+    }
+}
+
+
+
+
 int iinteger(istream& in, const char *p) {
     int i;
     while (true) {
@@ -517,7 +551,7 @@ int main() {
                 << "> 7. Darken or Lighten" << endl
                 << "> 8. Crop Image" << endl
                 << "> 9. Frame" << endl
-                //<< "> 10. Edges" << endl
+                << "> 10. Detect Edges" << endl
                 << "> 11. Resize" << endl
                 // << "> 12. Blur" << endl
                 << "> 13. Save" << endl;
@@ -584,6 +618,10 @@ int main() {
                 FrameImage(image, FrameImageKind(irange(cin, ">> ", 1, 3) - 1), color);
                 break;
             }
+
+            case 10:
+                Detect_Image_Edges(image);
+                break;
             case 11: {
                 int w = irange(cin, ">> Enter the width of new image: ", 0, INT_MAX);
                 int h = irange(cin, ">> Enter the height of new image: ", 0, INT_MAX);
