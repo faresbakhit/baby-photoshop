@@ -138,32 +138,120 @@ void RotateImage(Image& image, int rotations) {
     }
 }
 
-void FrameImageDrawEdge(Image &image, int width, int pos, int color[3]) {
-    for (int i = pos; i < image.width - pos; ++i) {
-        for (int j = pos; j < pos + width; ++j) {
+enum FrameImageKind {
+    Simple,
+    Fancy,
+    VeryFancy,
+};
+
+void FrameImageDrawFilledRectangle(Image &image, int x, int y, int width, int height, int color[3]) {
+    for (int i = 0; i < width; ++i) {
+        for (int j = 0; j < height; ++j) {
             for (int k = 0; k < 3; ++k) {
-                image(i, j, k) = color[k];
-                image(i, image.height + j - width - 2 * pos, k) = color[k];
-            }
-        }
-    }
-    for (int j = pos; j < image.height - pos; ++j) {
-        for (int i = pos; i < pos + width; ++i) {
-            for (int k = 0; k < 3; ++k) {
-                image(i, j, k) = color[k];
-                image(image.width + i - width - 2 * pos, j, k) = color[k];
+                image(x + i, y + j, k) = color[k];
             }
         }
     }
 }
 
-void FrameImage(Image &image, int color[3]) {
-    int frame_width = image.height / 64; // px
-    int inner_frame_width = image.height / 128; // px
+void FrameImageDrawRectangle(Image &image, int x, int y, int width, int height, int thickness, int color[3]) {
+    for (int i = 0; i < width; ++i) {
+        for (int j = 0; j < thickness; ++j) {
+            for (int k = 0; k < 3; ++k) {
+                image(x + i, y + j, k) = color[k];
+                image(x + i, y + j + height - thickness, k) = color[k];
+            }
+        }
+    }
+    for (int i = 0; i < thickness; ++i) {
+        for (int j = thickness; j < (height - thickness); ++j) {
+            for (int k = 0; k < 3; ++k) {
+                image(x + i, y + j, k) = color[k];
+                image(x + i + width - thickness, y + j, k) = color[k];
+            }
+        }
+    }
+}
+
+void FrameImage(Image &image, FrameImageKind kind, int color[3]) {
+    int outer_frame_box_width = image.height / 32; // px
+    int outer_frame_thickness = image.height / 64; // px
+    int inner_frame_thickness = image.height / 96; // px
+    int inner_inner_frame_thickness = image.height / 128; // px
     int white[3] = {255, 255, 255};
-    FrameImageDrawEdge(image, frame_width, 0, color);
-    FrameImageDrawEdge(image, inner_frame_width, frame_width, white);
-    FrameImageDrawEdge(image, inner_frame_width, frame_width + 3 * inner_frame_width, white);
+
+    FrameImageDrawRectangle(
+        image,
+        0, 0, // x, y
+        image.width, image.height, // width, height
+        outer_frame_thickness, // thickness
+        color
+    );
+
+    if (kind == Simple) {
+        return;
+    }
+
+    FrameImageDrawRectangle(
+        image,
+        outer_frame_thickness, outer_frame_thickness, // x, y
+        image.width - 2 * outer_frame_thickness, // width
+        image.height - 2 * outer_frame_thickness, // height
+        inner_frame_thickness, // thickness
+        white
+    );
+
+    FrameImageDrawRectangle(
+        image,
+        outer_frame_thickness + 2 * inner_frame_thickness,
+        outer_frame_thickness + 2 * inner_frame_thickness, // x, y
+        image.width - 2 * outer_frame_thickness - 4 * inner_frame_thickness, // width
+        image.height - 2 * outer_frame_thickness - 4 * inner_frame_thickness, // height
+        inner_inner_frame_thickness, // thickness
+        white
+    );
+
+    if (kind == Fancy) {
+        return;
+    }
+
+    for (int i = 0; i < 2; ++i) {
+        for (int j = 0; j < 2; ++j) {
+            FrameImageDrawFilledRectangle(
+                image,
+                (1 - 2 * i) * (outer_frame_thickness + 2 * inner_frame_thickness) + i * (image.width - outer_frame_box_width), // x
+                (1 - 2 * j) * (outer_frame_thickness + 2 * inner_frame_thickness) + j * (image.height - outer_frame_box_width), // y
+                outer_frame_box_width, outer_frame_box_width, // width, height
+                white
+            );
+            FrameImageDrawRectangle(
+                image,
+                (1 - 2 * i) * (outer_frame_thickness + 2 * inner_frame_thickness) + i * (image.width - 2.4 * outer_frame_box_width), // x
+                (1 - 2 * j) * (outer_frame_thickness + 2 * inner_frame_thickness) + j * (image.height - 2.4 * outer_frame_box_width), // y
+                2.4 * outer_frame_box_width, // width
+                2.4 * outer_frame_box_width, // height
+                inner_frame_thickness, // thickness
+                white
+            );
+            FrameImageDrawRectangle(
+                image,
+                (1 - 2 * i) * (outer_frame_thickness + 2 * inner_frame_thickness) + i * (image.width - 1.7 * outer_frame_box_width), // x
+                (1 - 2 * j) * (outer_frame_thickness + 2 * inner_frame_thickness) + j * (image.height - 1.7 * outer_frame_box_width), // y
+                1.7 * outer_frame_box_width, // width
+                1.7 * outer_frame_box_width, // height
+                inner_inner_frame_thickness / 2, // thickness
+                white
+            );
+            FrameImageDrawFilledRectangle(
+                image,
+                i * ((1 - 2 * j) * outer_frame_thickness + j * (image.width - inner_frame_thickness)), // x
+                !i * ((1 - 2 * j) * (outer_frame_thickness) + j * (image.height - inner_frame_thickness)), // y
+                i * inner_frame_thickness + !i * image.width, // width
+                i * image.height + !i * inner_frame_thickness, // height
+                white
+            );
+        }
+    }
 }
 
 void BlackAndWhiteImage(Image& image) {
@@ -327,7 +415,7 @@ void LightenImage(Image& image) {
                 image(i, j, k) = min(255, image(i, j, k) + 50);
 }
 
-int iinteger(istream& in, const char* p) {
+int iinteger(istream& in, const char *p) {
     int i;
     while (true) {
         cout << p;
@@ -343,10 +431,10 @@ int iinteger(istream& in, const char* p) {
     }
 }
 
-int irange(istream& in, const char* p, int min, int max) {
+int irange(istream& in, const char *p, int min, int max) {
     int i;
     while (true) {
-        i = iinteger(cin, p);
+        i = iinteger(in, p);
         if (i < min || i > max) {
             cout << "> error: option " << i << " not in range [" << min << '-' << max << "]." << endl;
         } else {
@@ -355,18 +443,52 @@ int irange(istream& in, const char* p, int min, int max) {
     }
 }
 
-void iimage(istream& in, const char* p, Image& image) {
+void iimage(istream& in, const char *p, Image& image) {
+    string filepath;
     while (true) {
-        string filepath;
         cout << p;
-        getline(cin, filepath);
-
+        getline(in, filepath);
         try {
             image.load(filepath);
             return;
         } catch(const exception& e) {
             cout << "> error: " << e.what() << endl;
             continue;
+        }
+    }
+}
+
+int icolorhextoint(char r1, char r2) {
+    r1 = tolower(r1);
+    r2 = tolower(r2);
+
+    if (isdigit(r1)) r1 -= '0';
+    else if (r1 >= 'a' && r1 <=  'f') r1 -= 'a' - 10;
+    else throw invalid_argument("invalid hexadecimal color");
+
+    if (isdigit(r2)) r2 -= '0';
+    else if (r2 >= 'a' && r2 <=  'f') r2 -= 'a' - 10;
+    else throw invalid_argument("invalid hexadecimal color");
+
+    return r2 + 16*r1;
+}
+
+void icolor(istream& in, const char *p, int color[3]) {
+    string s;
+    while (true) {
+        cout << p;
+        getline(cin, s);
+        if (s.size() != 7 || s[0] != '#') {
+            cout << "> error: invalid hexadecimal color" << endl;
+            continue;
+        }
+        try {
+            color[0] = icolorhextoint(s[1], s[2]);
+            color[1] = icolorhextoint(s[3], s[4]);
+            color[2] = icolorhextoint(s[5], s[6]);
+            break;
+        } catch (const exception& e) {
+            cout << "> error: " << e.what() << endl;
         }
     }
 }
@@ -381,7 +503,7 @@ int main() {
             break;
         }
 
-        Image image, image2;
+        Image image;
         iimage(cin, ">> Enter image path: ", image);
 
         while (true) {
@@ -415,21 +537,21 @@ int main() {
             case 3:
                 InvertImage(image);
                 break;
-            case 4:
+            case 4: {
+                Image image2;
                 iimage(cin, ">> Enter second image path: ", image2);
                 MergeImage(image, image2);
                 break;
-            case 5: {
+            }
+            case 5:
                 cout << "> 1. Flip Horizontally" << endl
                      << "> 2. Flip Vertically" << endl;
-                bool flipHorizontally = irange(cin, ">> ", 1, 2) == 1;
-                if (flipHorizontally) {
+                if (irange(cin, ">> ", 1, 2) == 1) {
                     FlipHorizontally(image);
                 } else {
                     FlipVertically(image);
                 }
                 break;
-            }
             case 6:
                 cout << "> 1. Rotate by 90 degrees" << endl
                      << "> 2. Rotate by 180 degrees" << endl
@@ -445,26 +567,29 @@ int main() {
                     LightenImage(image);
                 }
                 break;
-            case 8:
+            case 8: {
                 int x = irange(cin, ">> the x value of starting point: ", 0, image.width);
                 int y = irange(cin, ">> the y value of starting point: ", 0, image.height);
                 int w = irange(cin, ">> Enter the width of area to crop: ", 0, image.width - x);
                 int h = irange(cin, ">> Enter the height of area to crop: ", 0, image.height - y);
                 CropImage(image, x, y, w, h);
                 break;
-            case 9:
-                int color[3] = {
-                    irange(cin, ">> Frame color (R)GB: ", 0, 255),
-                    irange(cin, ">> Frame color R(G)B: ", 0, 255),
-                    irange(cin, ">> Frame color RG(B): ", 0, 255),
-                };
-                FrameImage(image, color);
+            }
+            case 9: {
+                int color[3];
+                icolor(cin, ">> Enter hexadecimal color: ", color);
+                cout << "> 1. Simple frame" << endl
+                     << "> 2. Fancy frame" << endl
+                     << "> 3. Very fancy frame" << endl;
+                FrameImage(image, FrameImageKind(irange(cin, ">> ", 1, 3) - 1), color);
                 break;
-            case 11:
+            }
+            case 11: {
                 int w = irange(cin, ">> Enter the width of new image: ", 0, INT_MAX);
                 int h = irange(cin, ">> Enter the height of new image: ", 0, INT_MAX);
                 ResizeImage(image, w, h);
                 break;
+            }
             }
         }
 
