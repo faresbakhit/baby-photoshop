@@ -13,17 +13,18 @@
 // [Ali Ahmed Mohamed Reda]: aliahmedreda34@gmail.com
 // [Fares Ahmed Bakhit Hussain]: faresa.bakhit@gmail.com
 //
+
 // Ali Ahmed Mohamed Reda:
-// * Filter 1: Grayscale Conversion
-// * Filter 4: Merge Images
-// * Filter 7: Darken and Lighten Image
-// * Filter 10: Detect Image Edges
-//
-// Ahmed Shaaban Maghraby Mohammed:
 // * Filter 2: Black and White
 // * Filter 5: Flip Image
 // * Filter 8: Crop Images
 // * Filter 11: Resizing Images
+//
+// Ahmed Shaaban Maghraby Mohammed:
+// * Filter 1: Grayscale Conversion
+// * Filter 4: Merge Images
+// * Filter 7: Darken and Lighten Image
+// * Filter 10: Detect Image Edges
 //
 // Fares Ahmed Bakhit Hussain:
 // * Filter 3: Invert Image
