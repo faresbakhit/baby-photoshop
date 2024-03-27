@@ -13,18 +13,17 @@
 // [Ali Ahmed Mohamed Reda]: aliahmedreda34@gmail.com
 // [Fares Ahmed Bakhit Hussain]: faresa.bakhit@gmail.com
 //
-
-// Ali Ahmed Mohamed Reda:
-// * Filter 2: Black and White
-// * Filter 5: Flip Image
-// * Filter 8: Crop Images
-// * Filter 11: Resizing Images
-//
 // Ahmed Shaaban Maghraby Mohammed:
 // * Filter 1: Grayscale Conversion
 // * Filter 4: Merge Images
 // * Filter 7: Darken and Lighten Image
 // * Filter 10: Detect Image Edges
+//
+// Ali Ahmed Mohamed Reda:
+// * Filter 2: Black and White
+// * Filter 5: Flip Image
+// * Filter 8: Crop Images
+// * Filter 11: Resizing Images
 //
 // Fares Ahmed Bakhit Hussain:
 // * Filter 3: Invert Image
@@ -481,26 +480,26 @@ void BlurImage(Image& image, int level) {
     swap(image.raw_image, blurred_image.raw_image);
 }
 
-int iinteger(istream& in, const char *p) {
+int iinteger(const char *p) {
     int i;
     while (true) {
         cout << p;
-        in >> i;
-        if (in.fail()) {
-            in.clear();
-            in.ignore(numeric_limits<streamsize>::max(), '\n');
+        cin >> i;
+        if (cin.fail()) {
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
             cout << "> error: input not an integer." << endl;
         } else {
-            in.ignore();
+            cin.ignore();
             return i;
         }
     }
 }
 
-int irange(istream& in, const char *p, int min, int max) {
+int irange(const char *p, int min, int max) {
     int i;
     while (true) {
-        i = iinteger(in, p);
+        i = iinteger(p);
         if (i < min || i > max) {
             cout << "> error: option " << i << " not in range [" << min << '-' << max << "]." << endl;
         } else {
@@ -509,11 +508,11 @@ int irange(istream& in, const char *p, int min, int max) {
     }
 }
 
-void iimage(istream& in, const char *p, Image& image) {
+void iimage(const char *p, Image& image) {
     string filepath;
     while (true) {
         cout << p;
-        getline(in, filepath);
+        getline(cin, filepath);
         try {
             image.load(filepath);
             return;
@@ -539,7 +538,7 @@ int icolorhextoint(char r1, char r2) {
     return r2 + 16*r1;
 }
 
-void icolor(istream& in, const char *p, int color[3]) {
+void icolor(const char *p, int color[3]) {
     string s;
     while (true) {
         cout << p;
@@ -564,13 +563,13 @@ int main() {
         cout << "> 1. Open new image" << endl
              << "> 2. Exit" << endl;
 
-        int action = irange(cin, ">> ", 1, 2);
+        int action = irange(">> ", 1, 2);
         if (action == 2) {
             break;
         }
 
         Image image;
-        iimage(cin, ">> Enter image path: ", image);
+        iimage(">> Enter image path: ", image);
 
         while (true) {
             cout
@@ -588,7 +587,7 @@ int main() {
                 << "> 12. Blur" << endl
                 << "> 13. Save" << endl;
 
-            int filter = irange(cin, ">> ", 1, 13);
+            int filter = irange(">> ", 1, 13);
             if (filter == 13) {
                 break;
             }
@@ -605,14 +604,14 @@ int main() {
                 break;
             case 4: {
                 Image image2;
-                iimage(cin, ">> Enter second image path: ", image2);
+                iimage(">> Enter second image path: ", image2);
                 MergeImage(image, image2);
                 break;
             }
             case 5:
                 cout << "> 1. Flip Horizontally" << endl
                      << "> 2. Flip Vertically" << endl;
-                if (irange(cin, ">> ", 1, 2) == 1) {
+                if (irange(">> ", 1, 2) == 1) {
                     FlipHorizontally(image);
                 } else {
                     FlipVertically(image);
@@ -622,45 +621,45 @@ int main() {
                 cout << "> 1. Rotate by 90 degrees" << endl
                      << "> 2. Rotate by 180 degrees" << endl
                      << "> 3. Rotate by 270 degrees" << endl;
-                RotateImage(image, irange(cin, ">> ", 1, 3));
+                RotateImage(image, irange(">> ", 1, 3));
                 break;
             case 7:
                 cout << "> 1. Darker by 50%" << endl
                      << "> 2. Lighter by 50%" << endl;
-                if (irange(cin, ">> ", 1, 2) == 1) {
+                if (irange(">> ", 1, 2) == 1) {
                     DarkenImage(image);
                 } else {
                     LightenImage(image);
                 }
                 break;
             case 8: {
-                int x = irange(cin, ">> the x value of starting point: ", 0, image.width);
-                int y = irange(cin, ">> the y value of starting point: ", 0, image.height);
-                int w = irange(cin, ">> Enter the width of area to crop: ", 0, image.width - x);
-                int h = irange(cin, ">> Enter the height of area to crop: ", 0, image.height - y);
+                int x = irange(">> the x value of starting point: ", 0, image.width);
+                int y = irange(">> the y value of starting point: ", 0, image.height);
+                int w = irange(">> Enter the width of area to crop: ", 0, image.width - x);
+                int h = irange(">> Enter the height of area to crop: ", 0, image.height - y);
                 CropImage(image, x, y, w, h);
                 break;
             }
             case 9: {
                 int color[3];
-                icolor(cin, ">> Enter hexadecimal color: ", color);
+                icolor(">> Enter hexadecimal color: ", color);
                 cout << "> 1. Simple frame" << endl
                      << "> 2. Fancy frame" << endl
                      << "> 3. Very fancy frame" << endl;
-                FrameImage(image, FrameImageKind(irange(cin, ">> ", 1, 3) - 1), color);
+                FrameImage(image, FrameImageKind(irange(">> ", 1, 3) - 1), color);
                 break;
             }
             case 10:
                 DetectImageEdges(image);
                 break;
             case 11: {
-                int w = irange(cin, ">> Enter the width of new image: ", 0, INT_MAX);
-                int h = irange(cin, ">> Enter the height of new image: ", 0, INT_MAX);
+                int w = irange(">> Enter the width of new image: ", 0, INT_MAX);
+                int h = irange(">> Enter the height of new image: ", 0, INT_MAX);
                 ResizeImage(image, w, h);
                 break;
             }
             case 12:
-                BlurImage(image, irange(cin, ">> Enter bluring level: ", 1, INT_MAX));
+                BlurImage(image, irange(">> Enter bluring level: ", 1, INT_MAX));
                 break;
             }
         }
