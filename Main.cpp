@@ -417,7 +417,7 @@ void LightenImage(Image& image) {
                 image(i, j, k) = min(255, image(i, j, k) + 50);
 }
 
-void Detect_Image_Edges(Image& image) {
+void DetectImageEdges(Image& image) {
     int sobel_x[3][3] = {{-1, 0, 1}, {-2, 0, 2}, {-1, 0, 1} };
     int sobel_y[3][3] = {{-1, -2, -1}, {0, 0, 0}, {1, 2, 1} };
     Image edges(image.width, image.height);
@@ -447,8 +447,29 @@ void Detect_Image_Edges(Image& image) {
     }
 }
 
-
-
+void BlurImage(Image& image, int level) {
+    Image blurred_image(image.width, image.height);
+    for (int i = 0; i < image.width; ++i) {
+        for (int j = 0; j < image.height; ++j) {
+            if (i - level < 0 || j - level < 0 || i + level > image.width || j + level > image.height) {
+                for (int k = 0; k < 3; ++k) {
+                    blurred_image(i, j, k) = image(i, j, k);
+                }
+                continue;
+            }
+            for (int k = 0; k < 3; ++k) {
+                int sum = 0;
+                for (int m = -level; m <= level; ++m) {
+                    for (int n = -level; n <= level; ++n) {
+                        sum += image(i + m, j + n, k);
+                    }
+                }
+                blurred_image(i, j, k) = sum / pow(2*level + 1, 2);
+            }
+        }
+    }
+    swap(image.raw_image, blurred_image.raw_image);
+}
 
 int iinteger(istream& in, const char *p) {
     int i;
@@ -554,7 +575,7 @@ int main() {
                 << "> 9. Frame" << endl
                 << "> 10. Detect Edges" << endl
                 << "> 11. Resize" << endl
-                // << "> 12. Blur" << endl
+                << "> 12. Blur" << endl
                 << "> 13. Save" << endl;
 
             int filter = irange(cin, ">> ", 1, 13);
@@ -619,9 +640,8 @@ int main() {
                 FrameImage(image, FrameImageKind(irange(cin, ">> ", 1, 3) - 1), color);
                 break;
             }
-
             case 10:
-                Detect_Image_Edges(image);
+                DetectImageEdges(image);
                 break;
             case 11: {
                 int w = irange(cin, ">> Enter the width of new image: ", 0, INT_MAX);
@@ -629,6 +649,9 @@ int main() {
                 ResizeImage(image, w, h);
                 break;
             }
+            case 12:
+                BlurImage(image, irange(cin, ">> Enter bluring level: ", 1, INT_MAX));
+                break;
             }
         }
 
