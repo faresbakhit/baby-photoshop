@@ -73,6 +73,7 @@ public:
         if (raw_image == nullptr) {
             throw out_of_range("image not initalized");
         }
+
         const char* extension = strrchr(filepath.c_str(), '.');
         int success;
 
@@ -97,7 +98,7 @@ public:
         }
     }
 
-    unsigned char& getPixel(int x, int y, int c) {
+    unsigned char& operator()(int x, int y, int c) {
         if (x > width || x < 0) {
             throw out_of_range("row out of bounds");
         }
@@ -110,8 +111,17 @@ public:
         return raw_image[(y * width + x) * channels + c];
     }
 
-    unsigned char& operator()(int x, int y, int c) {
-        return getPixel(x, y, c);
+    const unsigned char& operator()(int x, int y, int c) const {
+        if (x > width || x < 0) {
+            throw out_of_range("row out of bounds");
+        }
+        if (y > height || y < 0) {
+            throw out_of_range("column out of bounds");
+        }
+        if (c > channels || c < 0) {
+            throw out_of_range("channel out of bounds");
+        }
+        return raw_image[(y * width + x) * channels + c];
     }
 };
 
@@ -141,20 +151,10 @@ void RotateImage(Image& image, int rotations) {
 }
 
 enum FrameImageKind {
-    Simple,
-    Fancy,
-    VeryFancy,
+    FrameImageSimple,
+    FrameImageFancy,
+    FrameImageVeryFancy,
 };
-
-void FrameImageDrawFilledRectangle(Image &image, int x, int y, int width, int height, int color[3]) {
-    for (int i = 0; i < width; ++i) {
-        for (int j = 0; j < height; ++j) {
-            for (int k = 0; k < 3; ++k) {
-                image(x + i, y + j, k) = color[k];
-            }
-        }
-    }
-}
 
 void FrameImageDrawRectangle(Image &image, int x, int y, int width, int height, int thickness, int color[3]) {
     for (int i = 0; i < width; ++i) {
@@ -175,12 +175,22 @@ void FrameImageDrawRectangle(Image &image, int x, int y, int width, int height, 
     }
 }
 
+void FrameImageDrawFilledRectangle(Image &image, int x, int y, int width, int height, int color[3]) {
+    for (int i = 0; i < width; ++i) {
+        for (int j = 0; j < height; ++j) {
+            for (int k = 0; k < 3; ++k) {
+                image(x + i, y + j, k) = color[k];
+            }
+        }
+    }
+}
+
 void FrameImage(Image &image, FrameImageKind kind, int color[3]) {
+    int white[3] = {255, 255, 255};
     int outer_frame_box_width = image.height / 32; // px
     int outer_frame_thickness = image.height / 64; // px
     int inner_frame_thickness = image.height / 96; // px
     int inner_inner_frame_thickness = image.height / 128; // px
-    int white[3] = {255, 255, 255};
 
     FrameImageDrawRectangle(
         image,
@@ -190,7 +200,7 @@ void FrameImage(Image &image, FrameImageKind kind, int color[3]) {
         color
     );
 
-    if (kind == Simple) {
+    if (kind == FrameImageSimple) {
         return;
     }
 
@@ -213,7 +223,7 @@ void FrameImage(Image &image, FrameImageKind kind, int color[3]) {
         white
     );
 
-    if (kind == Fancy) {
+    if (kind == FrameImageFancy) {
         return;
     }
 
