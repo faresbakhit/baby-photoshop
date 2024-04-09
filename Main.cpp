@@ -480,6 +480,26 @@ void BlurImage(Image& image, int level) {
     swap(image.raw_image, blurred_image.raw_image);
 }
 
+void SkewImage(Image& image, int degree) {
+    bool isNegative = degree < 0;
+    if (isNegative) degree = -degree;
+
+    float sinAlpha = sin((float) degree * 0.01745);
+    Image result((int) ((float) image.width + (float) image.height * sinAlpha), image.height);
+    for (int y = 0; y < image.height; ++y) {
+        int ySinAlpha = isNegative ? (int) ((float) y * sinAlpha) : (int) ((float) (image.height - y) * sinAlpha);
+        for (int x = 0; x < image.width; ++x) {
+            for (int k = 0; k < 3; ++k) {
+                result(x + ySinAlpha, y, k) = image(x, y, k);
+            }
+        }
+    }
+
+    swap(image.raw_image, result.raw_image);
+    image.width = result.width;
+    image.height = result.height;
+}
+
 int iinteger(const char *p) {
     int i;
     while (true) {
@@ -585,10 +605,16 @@ int main() {
                 << "> 10. Detect Edges" << endl
                 << "> 11. Resize" << endl
                 << "> 12. Blur" << endl
-                << "> 13. Save" << endl;
+                // << "> 13. Sunlight Filter" << endl
+                // << "> 14. Oil Paint Filter" << endl
+                // << "> 15. Old TV Noise Filter" << endl
+                // << "> 16. Purple Filter" << endl
+                // << "> 17. infrared Filter" << endl
+                << "> 18. Skew Image" << endl
+                << "> 19. Save" << endl;
 
-            int filter = irange(">> ", 1, 13);
-            if (filter == 13) {
+            int filter = irange(">> ", 1, 19);
+            if (filter == 19) {
                 break;
             }
 
@@ -660,6 +686,9 @@ int main() {
             }
             case 12:
                 BlurImage(image, irange(">> Enter bluring level: ", 1, INT_MAX));
+                break;
+            case 18:
+                SkewImage(image, irange(">> Enter degree to skew (from -89 to 89 degrees, positive towards the right, negative towards the left): ", -89, 89));
                 break;
             }
         }
