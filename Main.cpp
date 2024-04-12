@@ -578,6 +578,26 @@ void icolor(const char *p, int color[3]) {
     }
 }
 
+void Purple_filter(Image& image) {
+    for (int i = 0; i < image.width; ++i) {
+        for (int j = 0; j < image.height; ++j) {
+            int red = image(i, j, 0);
+            int green = image(i, j, 1);
+            int blue = image(i, j, 2);
+            red += 50;
+            blue += 50;
+            green -= 20;
+            red = min(255, max(0, red));
+            green = min(255, max(0, green));
+            blue = min(255, max(0, blue));
+            image(i, j, 0) = red;
+            image(i, j, 1) = green;
+            image(i, j, 2) = blue;
+        }
+    }
+}
+
+
 int main() {
     while (true) {
         cout << "> 1. Open new image" << endl
@@ -608,7 +628,7 @@ int main() {
                 // << "> 13. Sunlight Filter" << endl
                 // << "> 14. Oil Paint Filter" << endl
                 // << "> 15. Old TV Noise Filter" << endl
-                // << "> 16. Purple Filter" << endl
+                << "> 16. Purple Filter" << endl
                 // << "> 17. infrared Filter" << endl
                 << "> 18. Skew Image" << endl
                 << "> 19. Save" << endl;
@@ -686,6 +706,9 @@ int main() {
             }
             case 12:
                 BlurImage(image, irange(">> Enter bluring level: ", 1, INT_MAX));
+                break;
+            case 16:
+                Purple_filter(image);
                 break;
             case 18:
                 SkewImage(image, irange(">> Enter degree to skew (from -89 to 89 degrees, positive towards the right, negative towards the left): ", -89, 89));
