@@ -3,6 +3,7 @@
 //
 // File: CS112_A3_T1_20230022_20230240_20230277
 // Purpose: Baby photoshop
+// GitHub: https://github.com/faresbakhit/baby-photoshop
 //
 // Authors:
 // * Ahmed Shaaban Maghraby Mohammed - S23 - 20230022
@@ -18,23 +19,27 @@
 // * Filter 4: Merge Images
 // * Filter 7: Darken and Lighten Image
 // * Filter 10: Detect Image Edges
+// * Filter 16: Purple Image
 //
 // Ali Ahmed Mohamed Reda:
 // * Filter 2: Black and White
 // * Filter 5: Flip Image
 // * Filter 8: Crop Images
 // * Filter 11: Resizing Images
+// * Filter 18: Image Skewing Filter
 //
 // Fares Ahmed Bakhit Hussain:
 // * Filter 3: Invert Image
 // * Filter 6: Rotate Image
-// * Filter 9: Adding a Frame to the Picture
+// * Filter 9: Frame Image
 // * Filter 12: Blur Images
+// 
 //
 
 #include <iostream>
 #include <limits>
 #include <cmath>
+#include <cstring>
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -500,6 +505,68 @@ void SkewImage(Image& image, int degree) {
     image.height = result.height;
 }
 
+void PurpleImage(Image& image) {
+    for (int i = 0; i < image.width; ++i) {
+        for (int j = 0; j < image.height; ++j) {
+            int red = image(i, j, 0);
+            int green = image(i, j, 1);
+            int blue = image(i, j, 2);
+            red += 50;
+            blue += 50;
+            green -= 20;
+            red = min(255, max(0, red));
+            green = min(255, max(0, green));
+            blue = min(255, max(0, blue));
+            image(i, j, 0) = red;
+            image(i, j, 1) = green;
+            image(i, j, 2) = blue;
+        }
+    }
+}
+
+#define OILPAINT_RADIUS 5
+#define OILPAINT_INTENSITY 20
+
+void OilPaintImage(Image& image) {
+    int intensityCount[OILPAINT_INTENSITY] {},
+        averageR[OILPAINT_INTENSITY] {},
+        averageG[OILPAINT_INTENSITY] {},
+        averageB[OILPAINT_INTENSITY] {};
+    Image oil_image(image.width, image.height);
+    for (int i = OILPAINT_RADIUS; i < image.width - OILPAINT_RADIUS; ++i) {
+        for (int j = OILPAINT_RADIUS; j < image.height - OILPAINT_RADIUS; ++j) {
+            for (int m = -OILPAINT_RADIUS; m <= OILPAINT_RADIUS; ++m) {
+                for (int n = -OILPAINT_RADIUS; n <= OILPAINT_RADIUS; ++n) {
+                    int r = image(i + m, j + n, 0),
+                        g = image(i + m, j + n, 1),
+                        b = image(i + m, j + n, 2);
+            		int curIntensity = (int)((double)((r + g + b)/3)*OILPAINT_INTENSITY)/255.0f;
+                    intensityCount[curIntensity]++;
+            		averageR[curIntensity] += r;
+            		averageG[curIntensity] += g;
+            		averageB[curIntensity] += b;
+                }
+            }
+            int curMax = 0;
+            int maxIndex = 0;
+            for(int t = 0; t < OILPAINT_INTENSITY; t++) {
+            	if (intensityCount[t] > curMax) {
+                    curMax = intensityCount[t];
+            		maxIndex = t;
+                }
+            }
+            oil_image(i, j, 0) = averageR[maxIndex] / curMax;
+            oil_image(i, j, 1) = averageG[maxIndex] / curMax;
+            oil_image(i, j, 2) = averageB[maxIndex] / curMax;
+            std::memset(intensityCount, 0, sizeof(intensityCount));
+            std::memset(averageR, 0, sizeof(averageR));
+            std::memset(averageG, 0, sizeof(averageG));
+            std::memset(averageB, 0, sizeof(averageB));
+        }
+    }
+    std::swap(image.raw_image, oil_image.raw_image);
+}
+
 int iinteger(const char *p) {
     int i;
     while (true) {
@@ -578,26 +645,6 @@ void icolor(const char *p, int color[3]) {
     }
 }
 
-void Purple_filter(Image& image) {
-    for (int i = 0; i < image.width; ++i) {
-        for (int j = 0; j < image.height; ++j) {
-            int red = image(i, j, 0);
-            int green = image(i, j, 1);
-            int blue = image(i, j, 2);
-            red += 50;
-            blue += 50;
-            green -= 20;
-            red = min(255, max(0, red));
-            green = min(255, max(0, green));
-            blue = min(255, max(0, blue));
-            image(i, j, 0) = red;
-            image(i, j, 1) = green;
-            image(i, j, 2) = blue;
-        }
-    }
-}
-
-
 int main() {
     while (true) {
         cout << "> 1. Open new image" << endl
@@ -626,7 +673,7 @@ int main() {
                 << "> 11. Resize" << endl
                 << "> 12. Blur" << endl
                 // << "> 13. Sunlight Filter" << endl
-                // << "> 14. Oil Paint Filter" << endl
+                << "> 14. Oil Paint Filter" << endl
                 // << "> 15. Old TV Noise Filter" << endl
                 << "> 16. Purple Filter" << endl
                 // << "> 17. infrared Filter" << endl
@@ -707,8 +754,11 @@ int main() {
             case 12:
                 BlurImage(image, irange(">> Enter bluring level: ", 1, INT_MAX));
                 break;
+            case 14:
+                OilPaintImage(image);
+                break;
             case 16:
-                Purple_filter(image);
+                PurpleImage(image);
                 break;
             case 18:
                 SkewImage(image, irange(">> Enter degree to skew (from -89 to 89 degrees, positive towards the right, negative towards the left): ", -89, 89));
